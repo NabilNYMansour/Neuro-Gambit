@@ -22,7 +22,7 @@ def algebraic_to_matrix_python_chess(moves : str):
     return board_matrix
 
 def print_board(board : list[list[str]]):
-    for row in board[::-1]:
+    for row in board:
         print(row)
 
 def board_to_linear(board : list[list[str]]):
@@ -32,10 +32,83 @@ def board_to_linear(board : list[list[str]]):
             linear_board.append(cell)
     return linear_board
 
-# Testing
-# moves_string = "e4 e5 d3 d6 Be3 c6 Be2 b5 Nd2 a5 a4 c5 axb5 Nc6 bxc6 Ra6 Nc4 a4 c3 a3 Nxa3 Rxa3 Rxa3 c4 dxc4 d5 cxd5 Qxd5 exd5 Be6 Ra8+ Ke7 Bc5+ Kf6 Bxf8 Kg6 Bxg7 Kxg7 dxe6 Kh6 exf7 Nf6 Rxh8 Nh5 Bxh5 Kg5 Rxh7 Kf5 Qf3+ Ke6 Bg4+ Kd6 Rh6+ Kc5 Qe3+ Kb5 c4+ Kb4 Qc3+ Ka4 Bd1#"
-# moves_string = "e4 e5 Nf3 d6"# d4 Nc6 d5 Nb4 a3 Na6 Nc3 Be7 b4 Nf6 Bg5 O-O b5 Nc5 Bxf6 Bxf6 Bd3 Qd7 O-O Nxd3 Qxd3 c6 a4 cxd5 Nxd5 Qe6 Nc7 Qg4 Nxa8 Bd7 Nc7 Rc8 Nd5 Qg6 Nxf6+ Qxf6 Rfd1 Re8 Qxd6 Bg4 Qxf6 gxf6 Rd3 Bxf3 Rxf3 Rd8 Rxf6 Kg7 Rf3 Rd2 Rg3+ Kf8 c3 Re2 f3 Rc2 Rg5 f6 Rh5 Kg7 Rd1 Kg6 Rh3 Rxc3 Rd7 Rc1+ Kf2 Rc2+ Kg3 h5 Rxb7 Kg5 Rxa7 h4+ Rxh4 Rxg2+ Kxg2 Kxh4 b6 Kg5 b7 f5 exf5 Kxf5 b8=Q e4 Rf7+ Kg5 Qg8+ Kh6 Rh7#"
-# board_matrix = algebraic_to_matrix_python_chess(moves_string)
-# print_board(board_matrix)
-# print(board_to_linear(board_matrix))
-# NOTE: that top is white
+def linear_to_board(board : list[str]):
+    board_matrix = []
+    for i in range(0, 64, 8):
+        row = list(board[i:i+8])
+        board_matrix.append(row)
+    return board_matrix
+
+def matrix_to_board(matrix : list[list[str]], player : str):
+    board = chess.Board()
+    board.clear() # clear the board
+    for rank, row in enumerate(matrix):
+        for file, piece_symbol in enumerate(row):
+            if piece_symbol != '.':
+                piece = chess.Piece.from_symbol(piece_symbol)
+                square = chess.square(file, rank)
+                board.set_piece_at(square, piece)
+    board.turn = chess.WHITE if player == 'white' else chess.BLACK
+    return board
+
+def algebraic_to_full_move(board_matrix : list[list[str]], move : str, player : str):
+    board = matrix_to_board(board_matrix, player)
+    move_obj = board.parse_san(move)  # Parse the move in algebraic notation
+    return str(move_obj)
+
+def full_move_to_algebraic(board_matrix : list[list[str]], full_move : str, player : str):
+    move_obj = chess.Move.from_uci(full_move)  # Convert the first 4 characters to a Move object
+    board = matrix_to_board(board_matrix, player)
+    algebraic_move = board.san(move_obj)  # Convert the Move object to algebraic notation
+    return algebraic_move
+
+def algebraic_game_to_training_dataset(moves: str, winner : str):
+    if type(moves) == str:
+        moves = moves.split()
+    board = chess.Board()  # board init
+    data = {'boards' : [], 'moves_alg' : [], 'moves_uci' : []}
+    board_linear = list(str(board).replace('\n',' ').replace(' ', ''))
+    if winner == 'white':
+        data['boards'].append(board_linear)
+        data['moves_alg'].append(moves[0])
+        data['moves_uci'].append(str(board.parse_san(moves[0])))
+    for i in range(len(moves)-1):
+        move = moves[i]
+        n_move = moves[i+1]
+        try:
+            # print(board)
+            # print('\n')
+            board.push_san(move)
+            n_move_uci = str(board.parse_san(n_move))
+            board_linear = list(str(board).replace('\n',' ').replace(' ', ''))
+            if winner == 'white' and i%2==1:
+                data['boards'].append(board_linear)
+                data['moves_alg'].append(n_move)
+                data['moves_uci'].append(n_move_uci)
+            elif winner == 'black' and i%2==0:
+                data['boards'].append(board_linear)
+                data['moves_alg'].append(n_move)
+                data['moves_uci'].append(n_move_uci)
+        except ValueError:
+            print(f"Invalid move: {move}")
+
+    return data
+
+if __name__ == '__main__':
+    moves = 'e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nc6 c4 e6 Nc3 Nf6 Be2 Be7 Be3 a6 O-O O-O Rc1 b5'
+    # data = algebraic_game_to_training_dataset(moves, 'black')
+    # print(moves)
+    # print(data['moves_alg'])
+    # print(data['moves_uci'])
+    data = algebraic_game_to_training_dataset(moves, 'white')
+    print(data['moves_alg'])
+    print(data['moves_uci'])
+
+    for i in range(len(data['boards'])):
+        board = data['boards'][i]
+        alg = data['moves_alg'][i]
+        uci = data['moves_uci'][i]
+        print('\n')
+        print_board(linear_to_board(board))
+        print(alg)
+        print(uci)
