@@ -1,4 +1,5 @@
 import chess
+import torch
 
 def algebraic_to_matrix_python_chess(moves : str):
     if type(moves) == str:
@@ -42,7 +43,7 @@ def linear_to_board(board : list[str]):
 def matrix_to_board(matrix : list[list[str]], player : str):
     board = chess.Board()
     board.clear() # clear the board
-    for rank, row in enumerate(matrix):
+    for rank, row in enumerate(matrix[::-1]):
         for file, piece_symbol in enumerate(row):
             if piece_symbol != '.':
                 piece = chess.Piece.from_symbol(piece_symbol)
@@ -93,6 +94,63 @@ def algebraic_game_to_training_dataset(moves: str, winner : str):
             print(f"Invalid move: {move}")
 
     return data
+
+def encode_uci(uci : str):
+    pos_rank_labels = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
+    pos_file_labels = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5, '7': 6, '8': 7}
+    promotion_labels = {'q': 0, 'r': 1, 'b': 2, 'n': 3}
+
+    origin_pos = uci[:2]
+    destin_pos = uci[2:4]
+
+    org_rank = origin_pos[0]
+    org_file = origin_pos[1]
+
+    des_rank = destin_pos[0]
+    des_file = destin_pos[1]
+
+    # org pos
+    encoded_org_pos_rank = torch.zeros(1, len(pos_rank_labels))
+    encoded_org_pos_rank[0][pos_rank_labels[org_rank]] = 1
+
+    encoded_org_pos_file = torch.zeros(1, len(pos_file_labels))
+    encoded_org_pos_file[0][pos_file_labels[org_file]] = 1
+
+    # des pos
+    encoded_des_pos_rank = torch.zeros(1, len(pos_rank_labels))
+    encoded_des_pos_rank[0][pos_rank_labels[des_rank]] = 1
+
+    encoded_des_pos_file = torch.zeros(1, len(pos_file_labels))
+    encoded_des_pos_file[0][pos_file_labels[des_file]] = 1
+
+    encoded_prom = torch.zeros(1, len(promotion_labels)) # all zeros
+
+    if (len(uci) == 5): # there is a promotion
+        promotion = uci[4]
+        for i, label in enumerate(promotion):
+            encoded_prom[i][promotion_labels[label]] = 1
+
+    return torch.cat((encoded_org_pos_rank.view(1, -1), encoded_org_pos_file.view(1, -1),
+                      encoded_des_pos_rank.view(1, -1), encoded_des_pos_file.view(1, -1),
+                      encoded_prom.view(1, -1)), dim=1)
+
+def decode_uci(tensors : list[torch.Tensor]):
+    pos_rank_labels = {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f', 6: 'g', 7: 'h'}
+    pos_file_labels = {0: '1', 1: '2', 2: '3', 3: '4', 4: '5', 5: '6', 6: '7', 7: '8'}
+    promotion_labels = {0: 'q', 1: 'r', 2: 'b', 3: 'n'}
+
+    tensor_list = []
+    for i in range(len(tensors)):
+        tensor_list.append(tensors[i].tolist()[0])
+    o_r = pos_rank_labels[tensor_list[0].index(1)]
+    o_f = pos_file_labels[tensor_list[1].index(1)]
+    d_r = pos_rank_labels[tensor_list[2].index(1)]
+    d_f = pos_file_labels[tensor_list[3].index(1)]
+    try:
+        p = promotion_labels[tensor_list[4].index(1)]
+    except ValueError:
+        p = ''
+    return o_r+o_f+d_r+d_f+p
 
 if __name__ == '__main__':
     moves = 'e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nc6 c4 e6 Nc3 Nf6 Be2 Be7 Be3 a6 O-O O-O Rc1 b5'

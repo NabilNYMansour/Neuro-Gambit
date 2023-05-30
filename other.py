@@ -107,3 +107,28 @@ print(test2)
 #         print(part)
 
 # decode_uci(t)
+
+
+# Testing
+position_columns = ['p'+str(i) for i in range(64)]
+test_position = data_pandas[position_columns].iloc[0].to_list()
+test_player = data_pandas['player'].iloc[0]
+
+print('input:', test_player,test_position)
+
+model = Neuro_gambit()
+forward_test = model.forward_pandas(test_position, test_player)
+
+print('output:', forward_test)
+
+
+
+
+# Testing 
+# test2 = data_pandas['uci'].iloc[418]
+test2 = data_pandas['uci'].iloc[0]
+print(test2)
+t = encode_uci(test2)
+t_split = torch.split(t, [8, 8, 8, 8, 4], dim=1)
+
+print(decode_uci(t_split))
