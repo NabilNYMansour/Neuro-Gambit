@@ -1,7 +1,9 @@
 import chess
 import torch
 
-def algebraic_to_matrix_python_chess(moves : str):
+# NOTE: Possible issue in board matrix order with some functions and the naming confuses board with matrix sometimes.
+
+def algebraic_to_matrix(moves : str):
     if type(moves) == str:
         moves = moves.split()
     board = chess.Board()
@@ -22,18 +24,18 @@ def algebraic_to_matrix_python_chess(moves : str):
 
     return board_matrix
 
-def print_board(board : list[list[str]]):
+def print_matrix(board : list[list[str]]):
     for row in board:
         print(row)
 
-def board_to_linear(board : list[list[str]]):
+def matrix_to_linear(board : list[list[str]]):
     linear_board = []
     for row in board:
         for cell in row:
             linear_board.append(cell)
     return linear_board
 
-def linear_to_board(board : list[str]):
+def linear_to_matrix(board : list[str]):
     board_matrix = []
     for i in range(0, 64, 8):
         row = list(board[i:i+8])
@@ -51,6 +53,17 @@ def matrix_to_board(matrix : list[list[str]], player : str):
                 board.set_piece_at(square, piece)
     board.turn = chess.WHITE if player == 'white' else chess.BLACK
     return board
+
+def board_to_matrix(board : chess.Board):
+    board_matrix = [['.' for _ in range(8)] for _ in range(8)]
+
+    for square in chess.SQUARES:
+        piece = board.piece_at(square)
+        if piece:
+            file, rank = chess.square_file(square), chess.square_rank(square)
+            board_matrix[rank][file] = piece.symbol()
+
+    return board_matrix[::-1]
 
 def algebraic_to_full_move(board_matrix : list[list[str]], move : str, player : str):
     board = matrix_to_board(board_matrix, player)
@@ -154,19 +167,39 @@ def decode_uci(tensors : list[torch.Tensor]):
 
 if __name__ == '__main__':
     moves = 'e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nc6 c4 e6 Nc3 Nf6 Be2 Be7 Be3 a6 O-O O-O Rc1 b5'
-    # data = algebraic_game_to_training_dataset(moves, 'black')
-    # print(moves)
+    data = algebraic_game_to_training_dataset(moves, 'black')
+    b = linear_to_matrix(data['boards'][0])
+    print_matrix(b)
+    b = matrix_to_board(b, 'black')
+    print(b)
+    b = board_to_matrix(b)
+    print_matrix(b)
+    b = linear_to_matrix(matrix_to_linear(b))
+    print_matrix(b)
+    b = board_to_matrix(matrix_to_board(linear_to_matrix(matrix_to_linear(b)), 'black'))
+    print_matrix(b)
     # print(data['moves_alg'])
     # print(data['moves_uci'])
-    data = algebraic_game_to_training_dataset(moves, 'white')
-    print(data['moves_alg'])
-    print(data['moves_uci'])
+    # data = algebraic_game_to_training_dataset(moves, 'white')
+    # print(data['moves_alg'])
+    # print(data['moves_uci'])
 
-    for i in range(len(data['boards'])):
-        board = data['boards'][i]
-        alg = data['moves_alg'][i]
-        uci = data['moves_uci'][i]
-        print('\n')
-        print_board(linear_to_board(board))
-        print(alg)
-        print(uci)
+    # for i in range(len(data['boards'])):
+    #     board = data['boards'][i]
+    #     alg = data['moves_alg'][i]
+    #     uci = data['moves_uci'][i]
+    #     print('\n')
+    #     print_matrix(linear_to_matrix(board))
+    #     print(alg)
+    #     print(uci)
+    # b = chess.Board()
+    # print(b)
+    # print()
+
+    # bm = board_to_matrix(b)
+    # print_matrix(bm)
+    # print()
+
+    # m_to_b = matrix_to_board(bm, 'white')
+    # print(m_to_b)
+    # pass

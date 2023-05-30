@@ -132,3 +132,21 @@ t = encode_uci(test2)
 t_split = torch.split(t, [8, 8, 8, 8, 4], dim=1)
 
 print(decode_uci(t_split))
+
+
+
+data_pandas = pd.read_csv('./data/games_cleaned_'+str(elo)+'_scrambled.csv')
+
+# Testing
+game = 418
+data_pandas = pd.read_csv('./data/games_cleaned_'+str(elo)+'_scrambled.csv')
+position_columns = ['p'+str(i) for i in range(64)]
+board_linear = data_pandas.iloc[game][position_columns].to_list()
+player = data_pandas.iloc[game]['player']
+# player = 'black'
+best = data_pandas.iloc[game]['uci']
+print('player:', player)
+print('best move:', best)
+
+best_move = get_best_move(model, board_linear, player)
+print(best_move)
