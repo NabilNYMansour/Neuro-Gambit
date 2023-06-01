@@ -65,12 +65,12 @@ def board_to_matrix(board : chess.Board):
 
     return board_matrix[::-1]
 
-def algebraic_to_full_move(board_matrix : list[list[str]], move : str, player : str):
+def alg_to_uci(board_matrix : list[list[str]], move : str, player : str):
     board = matrix_to_board(board_matrix, player)
     move_obj = board.parse_san(move)  # Parse the move in algebraic notation
     return str(move_obj)
 
-def full_move_to_algebraic(board_matrix : list[list[str]], full_move : str, player : str):
+def uci_to_alg(board_matrix : list[list[str]], full_move : str, player : str):
     move_obj = chess.Move.from_uci(full_move)  # Convert the first 4 characters to a Move object
     board = matrix_to_board(board_matrix, player)
     algebraic_move = board.san(move_obj)  # Convert the Move object to algebraic notation
