@@ -3,6 +3,7 @@ import torch.nn as nn
 import chess
 from chess_transformation import linear_to_matrix, matrix_to_board, board_to_matrix, matrix_to_linear, uci_to_alg
 import torch.nn.functional as F
+from torchvision import models
 
 def one_hot_encode_labels(labels : list[str]):
     labels_dict = {'.': 0, 'K': 1, 'Q': 2, 'B': 3, 'N': 4, 'R': 5, 'P': 6, 'k': 7, 'q': 8, 'b': 9, 'n': 10, 'r': 11, 'p': 12}
@@ -91,7 +92,6 @@ class Neuro_gambit_2(nn.Module):
         positions = matrix_to_linear(board_to_matrix(board))
         return self.forward_str_input(positions, player)
 
-
 class Neuro_gambit_3(nn.Module):
     def __init__(self):
         super(Neuro_gambit_3, self).__init__()
@@ -135,6 +135,39 @@ class Neuro_gambit_3(nn.Module):
         output = self.decoder(self.encoder(x))
         return torch.split(output, [8, 8, 8, 8, 4], dim=1)
     
+    def forward_chess_board_input(self, board : chess.Board, player : str):
+        positions = matrix_to_linear(board_to_matrix(board))
+        return self.forward_str_input(positions, player)
+
+class Neuro_gambit_resnet(nn.Module):
+    def __init__(self):
+        super(Neuro_gambit_resnet, self).__init__()
+
+        self.input_linear_layer = nn.Linear(833, 1 * 32 * 32)
+        self.resnet_layer = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+        self.output_linear_layer = nn.Linear(1000, 36)
+
+        for param in self.resnet_layer.parameters():
+            param.requires_grad = False
+
+        self.resnet_layer.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+        self.resnet_layer.conv1.requires_grad_(True)
+
+    def forward_str_input(self, positions : list[str], player : str):
+        pos_tensor = one_hot_encode_labels(positions)
+        player_col = encode_player_col(player)
+        device = next(self.parameters()).device
+        input_layer = torch.cat((pos_tensor, player_col.unsqueeze(1)), dim=1).to(device)
+        output = self.forward(input_layer)
+        return output
+
+    def forward(self, x : torch.Tensor):
+        x = self.input_linear_layer(x)
+        x = x.view(-1, 1, 32, 32)
+        y = self.resnet_layer(x)
+        y = self.output_linear_layer(y)
+        return torch.split(y, [8, 8, 8, 8, 4], dim=1)
+
     def forward_chess_board_input(self, board : chess.Board, player : str):
         positions = matrix_to_linear(board_to_matrix(board))
         return self.forward_str_input(positions, player)

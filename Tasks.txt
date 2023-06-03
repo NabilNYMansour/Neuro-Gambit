@@ -1,8 +1,0 @@
-1. Data Transformation [NABIL] DONE
-2. Researching which model to use for transfer learning (or making new model) [VLAD]
-3. Researching and understanding stockfish (to make the pipeline for testing)
-4. Architecture of input and output [NABIL] DONE input = 64x13 + 1, output = 36
-5. Actual training and saving of the model.🥹 [NABIL]
-6. Refinement (maybe website🤮)
-
-note: Points not in order
