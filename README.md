@@ -7,11 +7,10 @@ The datasets for model were taken from the following links:
 - https://www.kaggle.com/datasets/datasnaek/chess
 ---
 ## The Models
-There are three different models with different architectures trained for the purpose of exploring ANNs. Which are:
+There are two different models with different architectures trained for the purpose of exploring ANNs. Which are:
 
-1. Neuro_Gambit: a small ANN that simply contained linear layers with RelU activation functions.
-2. Neuro_Gambit_2: a larger ANN which has the same architecture as Neuro_Gambit but with more linear and RelU layers.
-3. Neuro_Gambit_resnet: a wrapper model around the resnet18 model. It contained a linear layer at the beginning and end to properly wrap the input and output of resnet.
+1. Neuro_Gambit: an ANN that simply contained linear layers with RelU activation functions.
+2. Neuro_Gambit_resnet: a wrapper model around the resnet18 model. It contained a linear layer at the beginning and end to properly wrap the input and output of resnet.
 ---
 ## The inputs and outputs
 ### Input
@@ -22,7 +21,7 @@ Furthermore, the `64` entries were one hot encoded to each have 13 possible valu
 This makes the shape of the input to be `(64x13)+1=832+1=833`.
 
 ### Output
-The output was organized into `36` labels which all corrospond to a specific move in the board. The decoding is done as follows:
+The output was organized into `36` labels which all corrospond to a specific next move in the board. The decoding is done as follows:
 1. Seperate the `36` labels into `8x8x8x8x4`.
 2. The first 8 labels corrospond into a one hot encoded origin rank movement in UCI notation.
 3. The second 8 labels corrospond into a one hot encoded origin file movement in UCI notation.
@@ -37,7 +36,7 @@ For example, if say the following tensor was the output:
 [0., 0., 0., 0., 0., 0., 0., 1.] => 8
         [1., 0., 0., 0.]         => q
 ```
-The as you can see, we can decode the output to be `a7a8q` which in UCI notation, implies that we are promoting the white `a7` pawn into a queen by moving it to `a8`. In algebraic notation, this would `a8=q`.
+As you can see, we can decode the output to be `a7a8q` which in UCI notation, implies that we are promoting the white `a7` pawn into a queen by moving it to `a8`. In algebraic notation, this would `a8=q`.
 
 ---
 ## Playing with the model
@@ -48,10 +47,14 @@ pip install -r requirements.txt
 
 Afterwards, you can head into the `playing.ipynb` notebook and run the first 2 cells. You will be able to directly play with the AI in the notebook.
 
+**Note** that you can only run this code on Linux as some libraries don't work on windows.
+
 ---
 ## Final thoughts
-This project was an experiment and a way to learn how to utilize the pytorch library and how to make use of transfer learning. It was, however, a failure in terms of the goal that we were trying to achieve. The models, regardless of how we tried, kept on overfitting with where the cut out point seemed to be with a `train loss =~ 0.3` and a `validation loss =~ 0.375`.
+This project was an experiment and a way to learn how to utilize the pytorch library and how to make use of transfer learning. It was, however, a failure in terms of the goal that we were trying to achieve. The models, regardless of how we tried, kept on overfitting where the cut out point seemed to always be with a `train loss =~ 0.3` and a `validation loss =~ 0.375`.
 
-Any attempt of trying to avoid the overfitting seemed to fail and the most likely reason could have been that the input data shape itself did not warrent good generalization.
+Any attempt of trying to avoid the overfitting seemed to fail and the most likely reason could have been that the input data shape itself did not warrent good generalization and that the general approach of seperating the moves from the game could remove some vital generalization.
 
-However, the model does seem to be defending correctly at times and capturing correctly as well. However, that could be simple chance as these classical defense and attack moves are just so common that it probably memorized it in its training.
+The methods used to avoid overfitting are L2 regularization, dropout neurons and early stopping.
+
+However, the model does seem to be defending correctly at times and capturing correctly as well. However, that could be simple chance as these classical defense and attack moves are just so common that it probably memorized it in its training. In other words, the model starts to fail and hang pieces the more obscure moves you make.
