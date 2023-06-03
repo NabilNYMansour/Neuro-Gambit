@@ -166,18 +166,21 @@ def decode_uci(tensors : list[torch.Tensor]):
     return o_r+o_f+d_r+d_f+p
 
 if __name__ == '__main__':
-    moves = 'e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nc6 c4 e6 Nc3 Nf6 Be2 Be7 Be3 a6 O-O O-O Rc1 b5'
-    data = algebraic_game_to_training_dataset(moves, 'black')
-    b = linear_to_matrix(data['boards'][0])
-    print_matrix(b)
-    b = matrix_to_board(b, 'black')
-    print(b)
-    b = board_to_matrix(b)
-    print_matrix(b)
-    b = linear_to_matrix(matrix_to_linear(b))
-    print_matrix(b)
-    b = board_to_matrix(matrix_to_board(linear_to_matrix(matrix_to_linear(b)), 'black'))
-    print_matrix(b)
+    move = 'a7a8q'
+    x = encode_uci(move)
+    print(torch.split(x, [8, 8, 8, 8, 4], dim=1))
+    # moves = 'e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nc6 c4 e6 Nc3 Nf6 Be2 Be7 Be3 a6 O-O O-O Rc1 b5'
+    # data = algebraic_game_to_training_dataset(moves, 'black')
+    # b = linear_to_matrix(data['boards'][0])
+    # print_matrix(b)
+    # b = matrix_to_board(b, 'black')
+    # print(b)
+    # b = board_to_matrix(b)
+    # print_matrix(b)
+    # b = linear_to_matrix(matrix_to_linear(b))
+    # print_matrix(b)
+    # b = board_to_matrix(matrix_to_board(linear_to_matrix(matrix_to_linear(b)), 'black'))
+    # print_matrix(b)
     # print(data['moves_alg'])
     # print(data['moves_uci'])
     # data = algebraic_game_to_training_dataset(moves, 'white')
@@ -202,4 +205,4 @@ if __name__ == '__main__':
 
     # m_to_b = matrix_to_board(bm, 'white')
     # print(m_to_b)
-    # pass
+    pass
