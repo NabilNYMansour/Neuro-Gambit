@@ -1,4 +1,6 @@
 # Neuro-Gambit
+![board](./boards/board.png)
+
 ## Overview
 Neuro-Gambit is a Chess ANN experiment made and trained using pytorch.
 
