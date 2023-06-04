@@ -51,10 +51,14 @@ Afterwards, you can head into the `playing.ipynb` notebook and run the first 2 c
 
 ---
 ## Final thoughts
-This project was an experiment and a way to learn how to utilize the pytorch library and how to make use of transfer learning. It was, however, a failure in terms of the goal that we were trying to achieve. The models, regardless of how we tried, kept on overfitting where the cut out point seemed to always be with a `train loss =~ 0.3` and a `validation loss =~ 0.375`.
+This project was an experiment and a way to learn how to utilize the pytorch library and how to make use of transfer learning. It was, however, a not exact in terms of the goal that we were trying to achieve. The models, regardless of how we tried, kept on overfitting where the cut out point seemed to always be with a `train loss =~ 0.3` and a `validation loss =~ 0.375`.
 
 Any attempt of trying to avoid the overfitting seemed to fail and the most likely reason could have been that the input data shape itself did not warrent good generalization and that the general approach of seperating the moves from the game could remove some vital generalization.
 
-The methods used to avoid overfitting are L2 regularization, dropout neurons and early stopping.
+The methods used to avoid overfitting are **L2 regularization**, **dropout neurons** and **early stopping**.
 
-However, the model does seem to be defending correctly at times and capturing correctly as well. However, that could be simple chance as these classical defense and attack moves are just so common that it probably memorized it in its training. In other words, the model starts to fail and hang pieces the more obscure moves you make.
+However, the model did seem to generalize a bit at the beginning of the game as it seemed to be defending and capturing correctly *(according to my judgement where I have an ELO of 1000 in chess.com)*. This could be because in the training cases, it simply would have seen more similar opennings as the number of openning is far less than the number of potential games of chess.
+
+In conclusion, this model was able to generalize a bit when it came to the beginning of the game, always ended in overfitting which forced us to keep the training with around 0.3 loss cut point, and did not perfrom any better with he resnet model.
+
+Thank you for your time :).
