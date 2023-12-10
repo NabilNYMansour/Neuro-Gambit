@@ -59,7 +59,7 @@ Any attempt of trying to avoid the overfitting seemed to fail and the most likel
 
 The methods used to avoid overfitting are **L2 regularization**, **dropout neurons** and **early stopping**.
 
-However, the model did seem to generalize a bit at the beginning of the game as it seemed to be defending and capturing correctly *(according to my judgement where I have an ELO of 1000 in chess.com)*. This could be because in the training cases, it simply would have seen more similar opennings as the number of openning is far less than the number of potential games of chess.
+However, the model did seem to generalize a bit at the beginning of the game as it seemed to be defending and capturing correctly *(according to my simple judgement where I have an ELO of 1000 in chess.com)*. This could be because in the training cases, it simply would have seen more similar opennings as the number of openning is far less than the number of potential games of chess.
 
 In conclusion, this model was able to generalize a bit when it came to the beginning of the game, always ended in overfitting which forced us to keep the training with around 0.3 loss cut point, and did not perfrom any better with he resnet model.
 
